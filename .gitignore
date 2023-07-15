@@ -26,3 +26,4 @@ local.properties
 /gradle/wrapper/
 /app/.gitignore
 /.idea/
+/app/src/main/java/ru/anbn/eritea/StaticVariables.java

@@ -1,7 +1,10 @@
 package ru.anbn.eritea;
 
+import static ru.anbn.eritea.StaticVariables.*;
+
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -28,8 +31,11 @@ public class MainActivity extends AppCompatActivity {
     EditText address;
     EditText text;
 
-    Button button;
+    Button sendButton;
+    Button onSecurityButton;
+    Button offSecurityButton;
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,12 +47,33 @@ public class MainActivity extends AppCompatActivity {
         address = (EditText) findViewById(R.id.address);
         text = (EditText) findViewById(R.id.text);
 
-        button = (Button) findViewById(R.id.sendBtn);
-        button.setOnClickListener(new View.OnClickListener() {
+        sendButton = (Button) findViewById(R.id.sendButton);
+        sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 SmsManager smsManager = SmsManager.getDefault();
                 smsManager.sendTextMessage(address.getText().toString(), null, text.getText().toString(), sent_pi, deliver_pi);
+            }
+        });
+
+
+        onSecurityButton = (Button) findViewById(R.id.onSecurityButton);
+        onSecurityButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SmsManager smsManager = SmsManager.getDefault();
+                smsManager.sendTextMessage(PHONE_NUMBER_SIGNALLING, null, ON_SECURITY, sent_pi, deliver_pi);
+                onSecurityButton.setEnabled(false);
+            }
+        });
+
+        offSecurityButton = (Button) findViewById(R.id.offSecurityButton);
+        offSecurityButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SmsManager smsManager = SmsManager.getDefault();
+                smsManager.sendTextMessage(PHONE_NUMBER_SIGNALLING, null, OFF_SECURITY, sent_pi, deliver_pi);
+                offSecurityButton.setEnabled(false);
             }
         });
     }
@@ -84,13 +111,14 @@ public class MainActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             switch (getResultCode()) {
                 case Activity.RESULT_OK:
-                Toast.makeText(context, "Delivered", Toast.LENGTH_LONG).show();
-                break;
+                    Toast.makeText(context, "Delivered", Toast.LENGTH_LONG).show();
+                    break;
                 default:
                     Toast.makeText(context, "Delivery error", Toast.LENGTH_LONG).show();
                     break;
             }
         }
     };
+
 
 }
