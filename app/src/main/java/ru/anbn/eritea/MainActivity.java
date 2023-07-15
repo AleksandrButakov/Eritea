@@ -47,7 +47,6 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 SmsManager smsManager = SmsManager.getDefault();
                 smsManager.sendTextMessage(address.getText().toString(), null, text.getText().toString(), sent_pi, deliver_pi);
-                //smsManager.sendTextMessage(address.getText().toString(), null, text.getText().toString(), null, null);
             }
         });
     }
