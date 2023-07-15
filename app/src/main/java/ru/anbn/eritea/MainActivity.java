@@ -2,7 +2,13 @@ package ru.anbn.eritea;
 
 import static ru.anbn.eritea.StaticVariables.*;
 
+import android.Manifest;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.PackageManagerCompat;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -11,7 +17,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.telephony.SmsManager;
 import android.view.View;
 import android.widget.Button;
@@ -35,11 +43,23 @@ public class MainActivity extends AppCompatActivity {
     Button onSecurityButton;
     Button offSecurityButton;
 
+    int REQUEST_CODE_PERMISSION_SEND_SMS;
+
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // request permission on SEND_SMS
+        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.SEND_SMS},
+                REQUEST_CODE_PERMISSION_SEND_SMS);
+
+        // checking permission
+        if (ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+            toastView("Permission denied...");
+        }
 
         sent_pi = PendingIntent.getBroadcast(MainActivity.this, 0, sent_intent, PendingIntent.FLAG_IMMUTABLE);
         deliver_pi = PendingIntent.getBroadcast(MainActivity.this, 0, deliver_intent, PendingIntent.FLAG_IMMUTABLE);
@@ -51,19 +71,28 @@ public class MainActivity extends AppCompatActivity {
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SmsManager smsManager = SmsManager.getDefault();
-                smsManager.sendTextMessage(address.getText().toString(), null, text.getText().toString(), sent_pi, deliver_pi);
+                if (ActivityCompat.checkSelfPermission(MainActivity.this,
+                        Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
+                    SmsManager smsManager = SmsManager.getDefault();
+                    smsManager.sendTextMessage(address.getText().toString(), null, text.getText().toString(), sent_pi, deliver_pi);
+                } else {
+                    toastView("Permission denied...");
+                }
             }
         });
-
 
         onSecurityButton = (Button) findViewById(R.id.onSecurityButton);
         onSecurityButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SmsManager smsManager = SmsManager.getDefault();
-                smsManager.sendTextMessage(PHONE_NUMBER_SIGNALLING, null, ON_SECURITY, sent_pi, deliver_pi);
-                onSecurityButton.setEnabled(false);
+                if (ActivityCompat.checkSelfPermission(MainActivity.this,
+                        Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
+                    SmsManager smsManager = SmsManager.getDefault();
+                    smsManager.sendTextMessage(PHONE_NUMBER_SIGNALLING, null, ON_SECURITY, sent_pi, deliver_pi);
+                    onSecurityButton.setEnabled(false);
+                } else {
+                    toastView("Permission denied...");
+                }
             }
         });
 
@@ -71,25 +100,39 @@ public class MainActivity extends AppCompatActivity {
         offSecurityButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SmsManager smsManager = SmsManager.getDefault();
-                smsManager.sendTextMessage(PHONE_NUMBER_SIGNALLING, null, OFF_SECURITY, sent_pi, deliver_pi);
-                offSecurityButton.setEnabled(false);
+                if (ActivityCompat.checkSelfPermission(MainActivity.this,
+                        Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
+                    SmsManager smsManager = SmsManager.getDefault();
+                    smsManager.sendTextMessage(PHONE_NUMBER_SIGNALLING, null, OFF_SECURITY, sent_pi, deliver_pi);
+                    offSecurityButton.setEnabled(false);
+                } else {
+                    toastView("Permission denied...");
+                }
             }
         });
+
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+
+        // checking permission
+//        if (ActivityCompat.checkSelfPermission(this,
+//                Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
         registerReceiver(sentReceiver, new IntentFilter(SENT_SMS));
         registerReceiver(deliverReceiver, new IntentFilter(DELIVER_SMS));
+//        }
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+//        if (ActivityCompat.checkSelfPermission(this,
+//                Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
         unregisterReceiver(sentReceiver);
         unregisterReceiver(deliverReceiver);
+//        }
     }
 
     BroadcastReceiver sentReceiver = new BroadcastReceiver() {
@@ -97,10 +140,12 @@ public class MainActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             switch (getResultCode()) {
                 case Activity.RESULT_OK:
-                    Toast.makeText(context, "Sent", Toast.LENGTH_LONG).show();
+                    // Toast.makeText(context, "Sent", Toast.LENGTH_LONG).show();
+                    toastView("Sent");
                     break;
                 default:
-                    Toast.makeText(context, "Error send", Toast.LENGTH_LONG).show();
+                    // Toast.makeText(context, "Error send", Toast.LENGTH_LONG).show();
+                    toastView("Error send");
                     break;
             }
         }
@@ -111,14 +156,19 @@ public class MainActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             switch (getResultCode()) {
                 case Activity.RESULT_OK:
-                    Toast.makeText(context, "Delivered", Toast.LENGTH_LONG).show();
+                    //Toast.makeText(context, "Delivered", Toast.LENGTH_LONG).show();
+                    toastView("Delivered");
                     break;
                 default:
-                    Toast.makeText(context, "Delivery error", Toast.LENGTH_LONG).show();
+                    //Toast.makeText(context, "Delivery error", Toast.LENGTH_LONG).show();
+                    toastView("Delivery error");
                     break;
             }
         }
     };
 
+    public void toastView(String text) {
+        Toast.makeText(MainActivity.this, text, Toast.LENGTH_LONG).show();
+    }
 
 }
