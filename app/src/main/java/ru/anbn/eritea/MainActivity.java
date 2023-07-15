@@ -22,6 +22,8 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.telephony.SmsManager;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -54,6 +56,20 @@ public class MainActivity extends AppCompatActivity {
         // request permission on SEND_SMS
         ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.SEND_SMS},
                 REQUEST_CODE_PERMISSION_SEND_SMS);
+
+
+
+        final Animation animAlpha = AnimationUtils.loadAnimation(this, R.anim.alpha);
+        Button btnAlpha = (Button)findViewById(R.id.alpha);
+        btnAlpha.setOnClickListener(new Button.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                view.startAnimation(animAlpha);
+            }
+        });
+
+
+
 
         // checking permission
         if (ActivityCompat.checkSelfPermission(this,
