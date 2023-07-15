@@ -35,8 +35,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        sent_pi = PendingIntent.getBroadcast(MainActivity.this, 0, sent_intent, 0);
-        deliver_pi = PendingIntent.getBroadcast(MainActivity.this, 0, deliver_intent, 0);
+        sent_pi = PendingIntent.getBroadcast(MainActivity.this, 0, sent_intent, PendingIntent.FLAG_IMMUTABLE);
+        deliver_pi = PendingIntent.getBroadcast(MainActivity.this, 0, deliver_intent, PendingIntent.FLAG_IMMUTABLE);
 
         address = (EditText) findViewById(R.id.address);
         text = (EditText) findViewById(R.id.text);
@@ -46,7 +46,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 SmsManager smsManager = SmsManager.getDefault();
-                smsManager.sendTextMessage(address.getText().toString(), null, text.getText().toString(), null, null);
+                smsManager.sendTextMessage(address.getText().toString(), null, text.getText().toString(), sent_pi, deliver_pi);
+                //smsManager.sendTextMessage(address.getText().toString(), null, text.getText().toString(), null, null);
             }
         });
     }
@@ -61,7 +62,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-
+        unregisterReceiver(sentReceiver);
+        unregisterReceiver(deliverReceiver);
     }
 
     BroadcastReceiver sentReceiver = new BroadcastReceiver() {
@@ -81,8 +83,15 @@ public class MainActivity extends AppCompatActivity {
     BroadcastReceiver deliverReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-
+            switch (getResultCode()) {
+                case Activity.RESULT_OK:
+                Toast.makeText(context, "Delivered", Toast.LENGTH_LONG).show();
+                break;
+                default:
+                    Toast.makeText(context, "Delivery error", Toast.LENGTH_LONG).show();
+                    break;
+            }
         }
-    }
+    };
 
 }
